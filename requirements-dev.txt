@@ -1,0 +1,55 @@
+# This file is auto-generated from environment.yml, do not modify.
+# See that file for comments about the need/usage of each dependency.
+
+pip
+packaging >= 20.0
+hypothesis >= 5.41.1
+numpy >= 1.19.0
+pandas >= 1.2.0
+scipy
+wrapt
+pyyaml >=5.1
+typing_inspect >= 0.6.0
+typing_extensions >= 3.7.4.3
+frictionless
+pyarrow
+pydantic
+pandas-stubs <= 1.4.3.220807
+pyspark-stubs
+pyspark >= 3.2.0
+modin
+protobuf <= 3.20.3
+dask
+distributed
+geopandas
+shapely
+fastapi
+black >= 22.1.0
+isort >= 5.7.0
+codecov
+mypy <= 0.971
+pylint == 2.12.2
+pytest
+pytest-cov
+pytest-xdist
+pytest-asyncio
+xdoctest
+nox
+importlib_metadata
+uvicorn
+python-multipart
+sphinx
+sphinx-panels
+sphinx-autodoc-typehints <= 1.14.1
+sphinx-copybutton
+recommonmark
+twine
+asv
+pre_commit
+furo
+ray <= 1.7.0; python_version < '3.10'
+types-click
+types-pyyaml
+types-pkg_resources
+types-requests
+jupyterlite_sphinx
