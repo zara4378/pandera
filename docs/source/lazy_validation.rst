@@ -51,10 +51,13 @@ of all schemas and schema components gives you the option of doing just this:
 .. testcode:: lazy_validation
     :skipif: SKIP_PANDAS_LT_V1
 
+    import logging
     import pandas as pd
     import pandera as pa
 
     from pandera import Check, Column, DataFrameSchema
+
+    logging.basicConfig(filename='example.log',encoding='utf-8',level=logging.INFO,filemode='w',format='%(message)s')
 
     schema = pa.DataFrameSchema(
         columns={
@@ -107,14 +110,17 @@ of all schemas and schema components gives you the option of doing just this:
     try:
         schema.validate(dataframe, lazy=True)
     except SchemaErrors as err:
+        err.failure_case_summary # summary of schema errors
         err.failure_cases  # dataframe of schema errors
         err.data  # invalid dataframe
     ```
 
 As you can see from the output above, a :class:`~pandera.errors.SchemaErrors`
-exception is raised with a summary of the error counts and failure cases
+exception is raised with printing a summary of the error counts and failure cases
 caught by the schema. You can also see from the **Usage Tip** that you can
-catch these errors and inspect the failure cases in a more granular form:
+catch these errors, and inspect the failure cases in a more granular form while
+still logging a summary of the failure cases. As opposed to printing the output,
+the errors can be logged as part of your workflow:
 
 
 .. testcode:: lazy_validation
@@ -123,13 +129,25 @@ catch these errors and inspect the failure cases in a more granular form:
     try:
         schema.validate(df, lazy=True)
     except pa.errors.SchemaErrors as err:
-        print("Schema errors and failure cases:")
-        print(err.failure_cases)
-        print("\nDataFrame object that failed validation:")
-        print(err.data)
+        logging.info('Failure case summary:')
+        logging.info('\n'+err.failure_case_summary.to_string()) 
+        logging.info('\nSchema errors and failure cases:')
+        logging.info('\n'+err.failure_cases.to_string())
+        logging.info('\nDataFrame object that failed validation:')
+        logging.info('\n'+err.data.to_string())
+
+The log file, example.log will contain:
 
 .. testoutput:: lazy_validation
     :skipif: SKIP_PANDAS_LT_V1
+
+    Failure case summary:
+
+         column                 check   count
+    0  float_column  dtype('float64')       1
+    1  float_column   greater_than(0)       1
+    2    int_column    dtype('int64')       1
+    3    str_column       equal_to(a)       2
 
     Schema errors and failure cases:
         schema_context        column                check check_number  \
@@ -155,3 +173,19 @@ catch these errors and inspect the failure cases in a more granular form:
     0          a             0          a           None
     1          b             1          b           None
     2          c             2          d           None
+
+If you want to append the failure case information to the DataFrame object that failed validation,
+include ``err.data_with_error_info`` as part of your logging. The output will inform you which
+columns failed in your DataFrame:
+
+.. testoutput:: lazy_validation
+    :skipif: SKIP_PANDAS_LT_V1
+
+
+    DataFrame object that failed validation with error info:
+
+    check                                     equal_to(a) greater_than(0)         
+    int_column  float_column str_column index
+        a             0          a      0             NaN    float_column
+        b             1          b      1      str_column             NaN
+        c             2          d      2      str_column             NaN

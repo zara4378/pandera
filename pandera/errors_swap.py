@@ -152,24 +152,6 @@ class SchemaErrors(ReducedPickleExceptionBase):
         self.error_counts = error_counts
         self.failure_cases = failure_cases
         self.data = data
-        self.failure_case_summary = failure_cases.groupby('column')['check'] \
-            .value_counts().reset_index(name='count')
-        self.data_failure_case_appended = pd.merge(data.dropna(axis=1,how='all'), \
-                                                   failure_cases \
-                                                   .drop(failure_cases \
-                                                         [failure_cases['index'] \
-                                                          .isnull()]\
-                                                         .index, axis=0) \
-                                                   .drop(columns=['schema_context' \
-                                                                  ,'check_number', \
-                                                                  'failure_case'], \
-                                                         axis=1), left_index=True, \
-                                                   right_on='index')
-        self.data_failure_case_columns = list(self.data_failure_case_appended.columns)
-        self.data_with_error_info = self.data_failure_case_appended \
-            .pivot_table(index=[a for a in self.data_failure_case_columns if a not in \
-                                ['check','column']] \
-                         ,columns='check',values='column',aggfunc='first')
 
     def _message(self, error_counts, schema_errors):
         """Format error message."""
@@ -254,6 +236,11 @@ class SchemaErrors(ReducedPickleExceptionBase):
                     column = err.failure_cases["column"]
                 else:
                     column = (
+                        err.schema.name
+                        if reason_code == "schema_component_check"
+                        else None
+                    )
+
                         err.schema.name
                         if reason_code == "schema_component_check"
                         else None
