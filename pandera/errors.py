@@ -170,6 +170,7 @@ class SchemaErrors(ReducedPickleExceptionBase):
             .pivot_table(index=[a for a in self.data_failure_case_columns if a not in \
                                 ['check','column']] \
                          ,columns='check',values='column',aggfunc='first')
+        self.failure_case_index=failure_cases.index
 
     def _message(self, error_counts, schema_errors):
         """Format error message."""

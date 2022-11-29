@@ -189,3 +189,16 @@ columns failed in your DataFrame:
         a             0          a      0             NaN    float_column
         b             1          b      1      str_column             NaN
         c             2          d      2      str_column             NaN
+
+
+To convert the DataFrame output in a different file formats like csv ,xml and html use the syntax below
+    try:
+        schema.validate(df, lazy=True)
+    except pa.errors.SchemaErrors as err:
+        logging.info('Data in CSV format:')
+        logging.info('\n'+err.data.to_csv()) 
+        logging.info('\nData in HTML format:')
+        logging.info('\n'+err.data.to_html())
+        logging.info('\nData in XML format:')
+        logging.info('\n'+err.data.to_xml())
+      

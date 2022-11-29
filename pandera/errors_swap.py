@@ -241,10 +241,6 @@ class SchemaErrors(ReducedPickleExceptionBase):
                         else None
                     )
 
-                        err.schema.name
-                        if reason_code == "schema_component_check"
-                        else None
-                    )
 
                 failure_cases = err.failure_cases.assign(
                     schema_context=err.schema.__class__.__name__,
