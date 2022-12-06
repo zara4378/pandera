@@ -2034,8 +2034,8 @@ class SeriesSchemaBase:
                     f"failure cases:\n{failure_cases}"
                 )
 
+            print(f'\nType coercion required. Consider changing data type to {self._dtype}\n\n\n')
             if failure_cases is not None and not failure_cases.empty:
-
                 error_handler.collect_error(
                     "wrong_dtype",
                     errors.SchemaError(
