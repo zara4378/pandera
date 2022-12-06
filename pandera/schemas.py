@@ -1966,6 +1966,8 @@ class SeriesSchemaBase:
                         check="not_nullable",
                     ),
                 )
+            
+                
 
         # Check if the series contains duplicate values
         if self._unique:
@@ -2037,8 +2039,7 @@ class SeriesSchemaBase:
                         msg,
                         failure_cases=failure_cases,
                         check=f"dtype('{self.dtype}')",
-                    ),
-                )
+                    ),)
 
         check_results = []
         if check_utils.is_field(check_obj):

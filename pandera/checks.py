@@ -1057,3 +1057,15 @@ class Check(_CheckBase):
                 f"unique_values_eq({values})",
             ),
         )
+    
+    # @classmethod
+    # def check_null(series: pd.Series) -> pd.Series:
+    #     try: 
+    #         if pd.Series == None:
+    #             raise TypeError
+    #         else: 
+    #             pass
+    #     except TypeError:
+    #         print("Please replace null entries with 0's")
+            
+                
