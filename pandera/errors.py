@@ -144,6 +144,7 @@ class SchemaErrors(ReducedPickleExceptionBase):
         schema,
         schema_errors: List[Dict[str, Any]],
         data: Union[pd.Series, pd.DataFrame],
+        
     ):
         error_counts, failure_cases = self._parse_schema_errors(schema_errors)
         self.schema = schema
@@ -171,6 +172,7 @@ class SchemaErrors(ReducedPickleExceptionBase):
                                 ['check','column']] \
                          ,columns='check',values='column',aggfunc='first')
         self.failure_case_index=failure_cases.index
+        
 
     def _message(self, error_counts, schema_errors):
         """Format error message."""
@@ -186,6 +188,7 @@ class SchemaErrors(ReducedPickleExceptionBase):
 
         def agg_failure_cases(df):
             # NOTE: this is a hack to add modin support
+            schema_errors['failure_case']=schema_errors['failure_case'].astype(str)
             if type(df).__module__.startswith("modin.pandas"):
                 return (
                     df.groupby(["schema_context", "column", "check"])
@@ -194,9 +197,14 @@ class SchemaErrors(ReducedPickleExceptionBase):
                 )
             return df.groupby(
                 ["schema_context", "column", "check"]
-            ).failure_case.unique()
+            ).failure_case.apply(','.join)\
+                          .reset_index()\
+                          .assign(n_failure_cases=lambda schema_errors:schema_errors.failure_case.apply(lambda x:len(x.split(','))))
 
-        agg_schema_errors = (
+        #print('Schema Errors:',schema_errors)
+
+        agg_schema_errors=agg_failure_cases(schema_errors)
+        """ agg_schema_errors = (
             schema_errors.fillna({"column": "<NA>"})
             .pipe(agg_failure_cases)
             .rename("failure_cases")
@@ -210,9 +218,11 @@ class SchemaErrors(ReducedPickleExceptionBase):
         agg_schema_errors = agg_schema_errors.sort_index(
             level=index_labels,
             ascending=[False, True],
-        )
+        ) """
         msg += "\nSchema Error Summary"
         msg += "\n--------------------\n"
+        agg_schema_errors['failure_case']=agg_schema_errors['failure_case'].str.split(',').str[0]
+
         with pd.option_context("display.max_colwidth", 100):
             msg += agg_schema_errors.to_string()
         msg += SCHEMA_ERRORS_SUFFIX

@@ -191,14 +191,25 @@ columns failed in your DataFrame:
         c             2          d      2      str_column             NaN
 
 
-To convert the DataFrame output in a different file formats like csv ,xml and html use the syntax below
+To convert the DataFrame output in a different file formats like csv ,xml and html use the syntax below:
+  .. testoutput:: lazy_validation
+    :skipif: SKIP_PANDAS_LT_V1
     try:
         schema.validate(df, lazy=True)
     except pa.errors.SchemaErrors as err:
-        logging.info('Data in CSV format:')
-        logging.info('\n'+err.data.to_csv()) 
-        logging.info('\nData in HTML format:')
-        logging.info('\n'+err.data.to_html())
-        logging.info('\nData in XML format:')
-        logging.info('\n'+err.data.to_xml())
+        # data in CSV format
+        err.data.to_csv()
+        # data in HTML format
+        err.data.to_html()
+        # data in XML format
+        err.data.to_xml()
+
+If you need only the indices of the failed records from the original DataFrame, include ``err.failure_case_index`` as part of your logging:
+  .. testoutput:: lazy_validation
+    :skipif: SKIP_PANDAS_LT_V1
+    try:
+        schema.validate(df, lazy=True)
+    except pa.errors.SchemaErrors as err:
+        logging.info('Failure case index:')
+        logging.info('\n'+err.failure_case_index.to_string())
       
