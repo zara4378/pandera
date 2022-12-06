@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import time
 import copy
 import itertools
 import os
@@ -322,6 +323,7 @@ class DataFrameSchema:  # pylint: disable=too-many-public-methods
 
         :returns: dictionary of columns and their associated dtypes.
         """
+        start_time = time.time()
         regex_columns = [
             name for name, col in self.columns.items() if col.regex
         ]
@@ -332,7 +334,10 @@ class DataFrameSchema:  # pylint: disable=too-many-public-methods
                 "for these columns.",
                 UserWarning,
             )
-        return {n: c.dtype for n, c in self.columns.items() if not c.regex}
+        end_time = time.time()
+        time_diff = end_time - start_time
+        print("Time taken by dtypes is {:.12f}".format(time_diff))
+        return {n: c.dtype for n, c in self.columns.items() if not c.regex}, time_diff
 
     def get_dtypes(self, dataframe: pd.DataFrame) -> Dict[str, DataType]:
         """
@@ -341,6 +346,7 @@ class DataFrameSchema:  # pylint: disable=too-many-public-methods
 
         :returns: dictionary of columns and their associated dtypes.
         """
+        start_time = time.time()
         regex_dtype = {}
         for _, column in self.columns.items():
             if column.regex:
@@ -350,10 +356,13 @@ class DataFrameSchema:  # pylint: disable=too-many-public-methods
                         for c in column.get_regex_columns(dataframe.columns)
                     }
                 )
+        end_time = time.time()
+        time_diff = end_time - start_time
+        print("Time taken by get_dtypes is {:.12f}".format(time_diff))                
         return {
             **{n: c.dtype for n, c in self.columns.items() if not c.regex},
             **regex_dtype,
-        }
+        }, time_diff
 
     @property
     def dtype(
@@ -452,7 +461,6 @@ class DataFrameSchema:  # pylint: disable=too-many-public-methods
         random_state: Optional[int] = None,
         lazy: bool = False,
         inplace: bool = False,
-        include_failure_cases: bool = True,
     ) -> pd.DataFrame:
         """Check if all columns in a dataframe have a column in the Schema.
 
@@ -508,6 +516,7 @@ class DataFrameSchema:  # pylint: disable=too-many-public-methods
         4         0.80      dog
         5         0.76      dog
         """
+        start_time = time.time()
 
         if not check_utils.is_table(check_obj):
             raise TypeError(f"expected pd.DataFrame, got {type(check_obj)}")
@@ -527,12 +536,13 @@ class DataFrameSchema:  # pylint: disable=too-many-public-methods
                 random_state=random_state,
                 lazy=lazy,
                 inplace=inplace,
-                include_failure_cases=include_failure_cases,
                 meta=check_obj,
             )
 
             return check_obj.pandera.add_schema(self)
-
+        end_time = time.time()
+        time_diff = end_time - start_time
+        print("Time taken by validate is {:.12f}".format(time_diff))  
         return self._validate(
             check_obj=check_obj,
             head=head,
@@ -541,8 +551,7 @@ class DataFrameSchema:  # pylint: disable=too-many-public-methods
             random_state=random_state,
             lazy=lazy,
             inplace=inplace,
-            include_failure_cases=include_failure_cases,
-        )
+        ), time_diff
 
     def _validate(
         self,
@@ -553,7 +562,6 @@ class DataFrameSchema:  # pylint: disable=too-many-public-methods
         random_state: Optional[int] = None,
         lazy: bool = False,
         inplace: bool = False,
-        include_failure_cases: bool = True,
     ) -> pd.DataFrame:
         # pylint: disable=too-many-locals,too-many-branches,too-many-statements
 
@@ -793,11 +801,10 @@ class DataFrameSchema:  # pylint: disable=too-many-public-methods
                             check="multiple_fields_uniqueness",
                         ),
                     )
-  
-        #include_failure_cases = False
+
         if lazy and error_handler.collected_errors:
             raise errors.SchemaErrors(
-                self, error_handler.collected_errors, check_obj, include_failure_cases
+                self, error_handler.collected_errors, check_obj
             )
 
         assert all(check_results), "all check results must be True."
@@ -812,7 +819,6 @@ class DataFrameSchema:  # pylint: disable=too-many-public-methods
         random_state: Optional[int] = None,
         lazy: bool = False,
         inplace: bool = False,
-        include_failure_cases: bool = True,
     ):
         """Alias for :func:`DataFrameSchema.validate` method.
 
@@ -833,7 +839,7 @@ class DataFrameSchema:  # pylint: disable=too-many-public-methods
             otherwise creates a copy of the data.
         """
         return self.validate(
-            dataframe, head, tail, sample, random_state, lazy, inplace, include_failure_cases
+            dataframe, head, tail, sample, random_state, lazy, inplace
         )
 
     def __repr__(self) -> str:
@@ -996,11 +1002,16 @@ class DataFrameSchema:  # pylint: disable=too-many-public-methods
         .. seealso:: :func:`remove_columns`
 
         """
+        start_time = time.time()
         schema_copy = copy.deepcopy(self)
         schema_copy.columns = {
             **schema_copy.columns,
             **self.__class__(extra_schema_cols).columns,
         }
+        end_time = time.time()
+        time_diff = end_time - start_time
+        print("Time taken by add_columns is {:.12f}".format(time_diff))
+        return_performance_time(time_diff)
         return schema_copy
 
     @_inferred_schema_guard
@@ -1110,7 +1121,6 @@ class DataFrameSchema:  # pylint: disable=too-many-public-methods
 
         """
         # check that columns exist in schema
-
         if "name" in kwargs:
             raise ValueError("cannot update 'name' of the column.")
         if column_name not in self.columns:
@@ -1121,6 +1131,7 @@ class DataFrameSchema:  # pylint: disable=too-many-public-methods
             **{**column_copy.properties, **kwargs}
         )
         schema_copy.columns.update({column_name: new_column})
+    
         return schema_copy
 
     def update_columns(self, update_dict: Dict[str, Dict[str, Any]]) -> Self:
@@ -1888,7 +1899,6 @@ class SeriesSchemaBase:
         random_state: Optional[int] = None,
         lazy: bool = False,
         inplace: bool = False,
-        include_failure_cases: bool = True,
     ) -> Union[pd.DataFrame, pd.Series]:
         # pylint: disable=too-many-locals,too-many-branches,too-many-statements
         """Validate a series or specific column in dataframe.
@@ -2084,10 +2094,9 @@ class SeriesSchemaBase:
                     original_exc=err,
                 )
 
-        #include_failure_cases = False
         if lazy and error_handler.collected_errors:
             raise errors.SchemaErrors(
-                self, error_handler.collected_errors, check_obj, include_failure_cases
+                self, error_handler.collected_errors, check_obj
             )
 
         assert all(check_results)
@@ -2102,7 +2111,6 @@ class SeriesSchemaBase:
         random_state: Optional[int] = None,
         lazy: bool = False,
         inplace: bool = False,
-        include_failure_cases: bool = True,
     ) -> Union[pd.DataFrame, pd.Series]:
         """Alias for ``validate`` method."""
         return self.validate(
@@ -2234,7 +2242,6 @@ class SeriesSchema(SeriesSchemaBase):
         random_state: Optional[int] = None,
         lazy: bool = False,
         inplace: bool = False,
-        include_failure_cases: bool = True,
     ) -> pd.Series:
         """Validate a Series object.
 
@@ -2320,7 +2327,6 @@ class SeriesSchema(SeriesSchemaBase):
         random_state: Optional[int] = None,
         lazy: bool = False,
         inplace: bool = False,
-        include_failure_cases: bool = True,
     ) -> pd.Series:
         if not inplace:
             check_obj = check_obj.copy()
@@ -2381,7 +2387,6 @@ class SeriesSchema(SeriesSchemaBase):
         random_state: Optional[int] = None,
         lazy: bool = False,
         inplace: bool = False,
-        include_failure_cases: bool = True,
     ) -> pd.Series:
         """Alias for :func:`SeriesSchema.validate` method."""
         return self.validate(
@@ -2481,3 +2486,8 @@ def convert_uniquesettings(unique: UniqueSettings) -> Union[bool, str]:
             str(unique) + " is not a recognized report_duplicates value"
         )
     return keep_argument
+
+
+def return_performance_time(x):
+    performance_time = x
+    return performance_time
