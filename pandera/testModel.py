@@ -1,6 +1,8 @@
 import pytest
 import re
 import pandera as pa
+import HtmlTestRunner
+import unittest
 
 
 from pandera.errors import SchemaError, SchemaInitError
@@ -79,6 +81,15 @@ def test_multipleIndex() -> None:
     assert expect == Schema.to_schema()
     
     
+# testCases = unittest.TestLoader().loadTestsFromTestCase(testModels)
 
 
+# outfile = open("C: Users\zahra\Documents\Pandera_ZaraReport.html", "w")
+
+# runner = HtmlTestRunner.HTMLTestRunner(
+#     stream = outfile)
+#     #title = 'title', 
+#     #description = 'Unit Test Report')
+
+# runner.run(testCases)
 

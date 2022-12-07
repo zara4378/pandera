@@ -1057,3 +1057,9 @@ class Check(_CheckBase):
                 f"unique_values_eq({values})",
             ),
         )
+    # @classmethod
+    # def htmlUnitTest(self, outfile):
+    #     self.runner = HtmlTestRunner.HTMLTestRunner(
+    #         stream = outfile,
+    #         title = 'title', 
+    #         description = 'Unit Test Report')
