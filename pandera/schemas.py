@@ -669,7 +669,7 @@ class DataFrameSchema:  # pylint: disable=too-many-public-methods
         # that are not in the dataframe that should be excluded for lazy
         # validation
         lazy_exclude_columns = []
-        for colname, col_schema in self.columns.items():
+        """ for colname, col_schema in self.columns.items():
             if (
                 not col_schema.regex
                 and colname not in check_obj
@@ -679,6 +679,51 @@ class DataFrameSchema:  # pylint: disable=too-many-public-methods
                     lazy_exclude_columns.append(colname)
                 msg = (
                     f"column '{colname}' not in dataframe\n{check_obj.head()}"
+                )
+                error_handler.collect_error(
+                    "column_not_in_dataframe",
+                    errors.SchemaError(
+                        self,
+                        check_obj,
+                        msg,
+                        failure_cases=scalar_failure_case(colname),
+                        check="column_in_dataframe",
+                    ),
+                ) """
+        for colname, col_schema in self.columns.items():
+            if (
+                not col_schema.regex
+                and colname not in check_obj
+                and col_schema.required
+                and col_schema.nullable
+            ):
+                check_obj[colname]=np.nan
+                """ if lazy:
+                    lazy_exclude_columns.append(colname)
+                msg = (
+                    f"Missing Nullable column '{colname}' added to dataframe\n{check_obj.head()}"
+                )
+                error_handler.collect_error(
+                    "column_not_in_dataframe",
+                    errors.SchemaError(
+                        self,
+                        check_obj,
+                        msg,
+                        failure_cases=scalar_failure_case(colname),
+                        check="column_in_dataframe",
+                    ),
+                ) """
+
+            elif (
+                not col_schema.regex
+                and colname not in check_obj
+                and col_schema.required
+                and not col_schema.nullable
+            ):
+                if lazy:
+                    lazy_exclude_columns.append(colname)
+                msg = (
+                    f"Not nullable column '{colname}' missing in dataframe\n{check_obj.head()}"
                 )
                 error_handler.collect_error(
                     "column_not_in_dataframe",
